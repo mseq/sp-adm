@@ -1,5 +1,5 @@
 
-# sharepoint-adm with pythin
+# sharepoint-adm with python
 
 Repository for M365 Automation with Python
 
