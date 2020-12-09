@@ -24,6 +24,7 @@ import json
 import subprocess
 
 from splibrary import LibraryManager
+from termcolors import bcolors
 
 library_manager = None
 

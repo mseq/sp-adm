@@ -5,6 +5,8 @@
 import json
 import subprocess
 
+from termcolors import bcolors
+
 class LibraryManager:
     """Manage a SharePoint Library."""
 
@@ -53,7 +55,7 @@ class LibraryManager:
 
     def get_content(self, url, path, recursive, level):
         """Get the files and folders, recursively if flagged."""
-        self.move_content(url, path, recursive, level, False, '')
+        self.move_content(url, path, recursive, level, True, '')
 
 
     def move_content(self, url, path, recursive, level, test, dst):
@@ -66,16 +68,33 @@ class LibraryManager:
         folders = self.get_folders(url, path)
         for folder in folders:
             if folder != '':
-                print(spacer + folder + '/')
+                print(spacer + folder + '/', end = '')
+                if (test == False):
+                    if (self.create_folder(url, dst, folder) == folder):
+                        print(bcolors.OKGREEN + "  CREATED")
+                    else:
+                        print(bcolors.FAIL + "  FAILED")
+                else:
+                    print('')
 
                 if recursive:
                     self.get_content(url, path + '/' + folder, recursive, level + 1)
 
         files = self.get_files(url, path)
         for file in files:
-            if file != '':
-                print(spacer + file)
+            if file != '': # Preparar a logica similar a do folder
+                print(spacer + file, end = '')
 
         return
 
 
+    def create_folder(self, url, path, folder):
+        """Create a folder a given path, from an URL."""
+        path = self.adjust_path(path)
+        result = (subprocess.run(['m365', 'spo folder add --query Name -o json -u', url, '-p', path, '-n', folder], \
+            stdout=subprocess.PIPE)).stdout.decode('utf-8')
+        
+        return result[1:len(result)-2]
+
+
+    def move_file(self, url, path, file, dst)

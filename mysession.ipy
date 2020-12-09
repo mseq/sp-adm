@@ -1,0 +1,63 @@
+# coding: utf-8
+str = 'my new string has a slash in the end /'
+print (str[0:len(str)-1])
+print (str[0:len(str)])
+print (str[0:len(str)-1])
+if str[-1] != '/':
+    print('true')
+else:
+    print('false')
+    
+spacer = ''
+for i in range(0,0):
+    spacer = spacer + '.'
+    
+print(spacer)
+for i in range(0,1):
+    spacer = spacer + '.'
+    
+print(spacer)
+if True:
+    print('ok')
+    
+import subprocess
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+print result
+print(result)
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)
+print(result)
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'])
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'])
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)
+print(result)
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o text'], stdout=subprocess.PIPE)
+print(subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o text'], stdout=subprocess.PIPE))
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], capture_outut=True)
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], capture_output=True)
+result = subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)
+print(result.stdout)
+print((subprocess.run(['m365', 'spo file list -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout)
+print((subprocess.run(['m365', 'spo file list --query [\'Name\'] -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout)
+print((subprocess.run(['m365', 'spo file list --query \'Name\' -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout)
+print((subprocess.run(['m365', 'spo file list --query [*] -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout)
+print((subprocess.run(['m365', 'spo file list --query [*].Name -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout)
+print((subprocess.run(['m365', 'spo file list --query [*].Name -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout.decode('utf-8'))
+result = (subprocess.run(['m365', 'spo file list --query [*].Name -u \'https://valtellinabr.sharepoint.com/sites/VALTELLINADOBRASILSERVICOSPARAINDUSTRIALTDA-OperaoTIM\' -f \'MigracaoBarra/Operacional/MANUTENÇÃO/DIAGRAMAS/Diagramas2\' -o json'], stdout=subprocess.PIPE)).stdout.decode('utf-8')
+for file in result:
+    print(file)
+    
+print(result)
+print(result[1:len(result)-1])
+print(result[1:len(result)-2])
+files = result[1:len(result)-2].split("\",\"")
+for file in files:
+    print file
+for file in files:
+    print(file)
+    
+files = result[2:len(result)-3].split("\",\"")
+for file in files:
+    print(file)
+    
+%help
+%save -r mysession 1-99999
