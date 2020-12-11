@@ -75,11 +75,12 @@ def list_content(url, path, recursive):
 @cli.command('move-content')
 @click.argument('url')
 @click.argument('path')
+@click.argument('targ')
 @click.argument('dst')
 @click.option('--recursive/--no-recursive', default=False)
-def move_content(url, path, dst, recursive):
+def move_content(url, path, targ, dst, recursive):
     """Lists the folders and files, recursively if flagged"""
-    library_manager.move_content(url, path, recursive, 0, True, dst)
+    library_manager.move_content(url, path, recursive, 0, False, targ, dst)
 
 
 if __name__ == '__main__':

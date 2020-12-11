@@ -55,10 +55,10 @@ class LibraryManager:
 
     def get_content(self, url, path, recursive, level):
         """Get the files and folders, recursively if flagged."""
-        self.move_content(url, path, recursive, level, True, '')
+        self.move_content(url, path, recursive, level, True, '', '')
 
 
-    def move_content(self, url, path, recursive, level, test, dst):
+    def move_content(self, url, path, recursive, level, test, targ, dst):
         """Navigate the folders and files, recursively, if flagged
         Creating the folder tree structure and moving the files."""
         spacer = ''
@@ -70,20 +70,27 @@ class LibraryManager:
             if folder != '':
                 print(spacer + folder + '/', end = '')
                 if (test == False):
-                    if (self.create_folder(url, dst, folder) == folder):
-                        print(bcolors.OKGREEN + "  CREATED")
+                    if (self.create_folder(url, dst, folder) == 0):
+                        print(bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
                     else:
-                        print(bcolors.FAIL + "  FAILED")
+                        print(bcolors.FAIL + "  FAILED" + bcolors.ENDC)
                 else:
                     print('')
 
                 if recursive:
-                    self.get_content(url, path + '/' + folder, recursive, level + 1)
+                    self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
 
         files = self.get_files(url, path)
         for file in files:
-            if file != '': # Preparar a logica similar a do folder
+            if file != '': 
                 print(spacer + file, end = '')
+                if (test == False):
+                    if (self.move_file(url, path, file, targ, dst) == 0):
+                        print(bcolors.OKCYAN + "  MOVED" + bcolors.ENDC)
+                    else:
+                        print(bcolors.FAIL + "  FAILED" + bcolors.ENDC)
+                else:
+                    print('')
 
         return
 
@@ -91,10 +98,15 @@ class LibraryManager:
     def create_folder(self, url, path, folder):
         """Create a folder a given path, from an URL."""
         path = self.adjust_path(path)
-        result = (subprocess.run(['m365', 'spo folder add --query Name -o json -u', url, '-p', path, '-n', folder], \
-            stdout=subprocess.PIPE)).stdout.decode('utf-8')
-        
-        return result[1:len(result)-2]
+        #print('\n m365 spo folder add -o json -u {0} -p {1} -n {2}'.format(url, path, folder))
+        return (subprocess.run(['m365', 'spo folder add -o json -u', url, '-p', path, '-n', folder], \
+            stdout=subprocess.PIPE)).returncode
 
 
-    def move_file(self, url, path, file, dst)
+    def move_file(self, url, path, file, targ, dst):
+        """Move the FILE from URL/Path to DST."""
+        targ = self.adjust_path(targ)
+        dst = self.adjust_path(dst)
+        #print('\n m365 spo file move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + file, '/' + targ + '/' + dst + '/'))
+        return (subprocess.run(['m365', 'spo file move -o json -u', url, '-s', path + '/' + file, '-t', '/' + targ + '/' + dst + '/'], \
+            stdout=subprocess.PIPE)).returncode
