@@ -5,7 +5,9 @@
 import json
 import subprocess
 
-from termcolors import bcolors
+from utility import bcolors
+from utility import emulated_result_0
+from utility import emulated_result_1
 
 class LibraryManager:
     """Manage a SharePoint Library."""
@@ -61,52 +63,99 @@ class LibraryManager:
     def move_content(self, url, path, recursive, level, test, targ, dst):
         """Navigate the folders and files, recursively, if flagged
         Creating the folder tree structure and moving the files."""
-        spacer = ''
-        for i in range(0, level):
-            spacer = spacer + '...'
+        errcount = 0
 
         folders = self.get_folders(url, path)
         for folder in folders:
             if folder != '':
-                print(spacer + folder + '/', end = '')
                 if (test == False):
-                    if (self.create_folder(url, dst, folder) == 0):
-                        print(bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
+                    # Try to move the folder, and if fail, create it and move its items
+                    result = self.move_folder(url, path, folder, targ, dst)
+                    if result.returncode == 0:
+                        print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+                        print('/' + dst + '/' + bcolors.OKGREEN + "  FOLDER MOVED" + bcolors.ENDC)
                     else:
-                        print(bcolors.FAIL + "  FAILED" + bcolors.ENDC)
-                else:
-                    print('')
+                        print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+                        print('/' + dst + '/' + bcolors.FAIL + "  FOLDER MOVE FAILED: " + bcolors.ENDC + \
+                            json.loads(result.stdout.decode('utf-8'))['message'])
 
-                if recursive:
-                    self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
+                        result = self.create_folder(url, dst, folder)
+                        if (result.returncode == 0):
+                            print('/' + dst + '/' + folder + bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
+                        else:
+                            print('/' + dst + '/' + folder + bcolors.FAIL + "  CREATE FAILED: " + bcolors.ENDC + \
+                                json.loads(result.stdout.decode('utf-8'))['message'])
+                            errcount += 1
+
+                        if recursive:
+                            result = self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
+                            errcount += result
+                            if test == False and result == 0:
+                                result = self.remove_folder(url, path, folder)
+                                if result.returncode == 0:
+                                    print('/' + path + '/' + folder + bcolors.OKBLUE + "  REMOVED" + bcolors.ENDC)
+                                else:
+                                    print('/' + path + '/' + folder + bcolors.FAIL + "  REMOVE FAILED: " + bcolors.ENDC + \
+                                        json.loads(result.stdout.decode('utf-8'))['message'])
+
+                else:
+                    print(path + '/' + folder + '/')
+
+                    if recursive:
+                        result = self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
 
         files = self.get_files(url, path)
         for file in files:
             if file != '': 
-                print(spacer + file, end = '')
                 if (test == False):
-                    if (self.move_file(url, path, file, targ, dst) == 0):
-                        print(bcolors.OKCYAN + "  MOVED" + bcolors.ENDC)
+                    result = self.move_file(url, path, file, targ, dst)
+                    if (result.returncode == 0):
+                        print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+                        print('/' + dst + '/' + bcolors.OKCYAN + "  FILE MOVED" + bcolors.ENDC)
                     else:
-                        print(bcolors.FAIL + "  FAILED" + bcolors.ENDC)
+                        print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+                        print(dst + '/' + bcolors.FAIL + "  FILE MOVE FAILED: " + bcolors.ENDC + \
+                            json.loads(result.stdout.decode('utf-8'))['message'])
+                        errcount += 1
                 else:
-                    print('')
+                    print(path + '/' + file)
 
-        return
+        return errcount
 
 
     def create_folder(self, url, path, folder):
         """Create a folder a given path, from an URL."""
         path = self.adjust_path(path)
-        #print('\n m365 spo folder add -o json -u {0} -p {1} -n {2}'.format(url, path, folder))
+        # print('\n m365 spo folder add -o json -u {0} -p {1} -n {2}'.format(url, path, folder))
+        # return emulated_result_0 
         return (subprocess.run(['m365', 'spo folder add -o json -u', url, '-p', path, '-n', folder], \
-            stdout=subprocess.PIPE)).returncode
+            stdout=subprocess.PIPE))
 
 
     def move_file(self, url, path, file, targ, dst):
         """Move the FILE from URL/Path to DST."""
         targ = self.adjust_path(targ)
         dst = self.adjust_path(dst)
-        #print('\n m365 spo file move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + file, '/' + targ + '/' + dst + '/'))
+        # print('\n m365 spo file move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + file, '/' + targ + '/' + dst + '/'))
+        # return emulated_result_1 
         return (subprocess.run(['m365', 'spo file move -o json -u', url, '-s', path + '/' + file, '-t', '/' + targ + '/' + dst + '/'], \
-            stdout=subprocess.PIPE)).returncode
+            stdout=subprocess.PIPE))
+
+
+    def move_folder(self, url, path, folder, targ, dst):
+        """Move the FOLDER from URL/Path to DST."""
+        targ = self.adjust_path(targ)
+        dst = self.adjust_path(dst)
+        # print('\n m365 spo folder move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + folder, '/' + targ + '/' + dst + '/'))
+        # return emulated_result_1 
+        return (subprocess.run(['m365', 'spo folder move -o json -u', url, '-s', path + '/' + folder, '-t', '/' + targ + '/' + dst + '/'], \
+            stdout=subprocess.PIPE))
+
+
+    def remove_folder(self, url, path, folder):
+        """Remove a FOLDER from URL/Path."""
+        path = self.adjust_path(path)
+        # print('\n m365 spo folder remove --confirm -o json -u {0} -f {1}'.format(url, '/' + path + '/' + folder))
+        # return emulated_result_0 
+        return (subprocess.run(['m365', 'spo folder remove --confirm -o json -u', url, '-f', '/' + path + '/' + folder], \
+            stdout=subprocess.PIPE))
