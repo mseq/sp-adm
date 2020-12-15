@@ -1,4 +1,6 @@
 *.pyc
 *.ipy
+*.log
 __pycache__
 mysession.py
+

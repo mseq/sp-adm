@@ -3,7 +3,7 @@
 
 Repository for M365 Automation with Python
 It is mainly based on the PnP CLI for M365
-Link: https://pnp.github.io/cli-microsoft365/cmd/spo/folder/folder-remove/
+Link: https://pnp.github.io/cli-microsoft365/
 
 ## sp-adm
 

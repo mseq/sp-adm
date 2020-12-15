@@ -4,6 +4,8 @@
 
 import json
 import subprocess
+import threading
+import concurrent.futures
 
 from utility import bcolors
 from utility import emulated_result_0
@@ -43,6 +45,12 @@ class LibraryManager:
 
         return result[2:len(result)-3].split("\",\"")
 
+    def get_folder_item_count(self, url, path):
+        """Get details of a folder."""
+        path = self.adjust_path(path)
+        return (subprocess.run(['m365', 'spo folder get --query ItemCount -o json -u', url, '-f', path], \
+            stdout=subprocess.PIPE)).stdout.decode('utf-8')
+
 
     def get_files(self, url, path):
         """Get files list."""
@@ -63,64 +71,56 @@ class LibraryManager:
     def move_content(self, url, path, recursive, level, test, targ, dst):
         """Navigate the folders and files, recursively, if flagged
         Creating the folder tree structure and moving the files."""
-        errcount = 0
-
         folders = self.get_folders(url, path)
-        for folder in folders:
-            if folder != '':
-                if (test == False):
-                    # Try to move the folder, and if fail, create it and move its items
-                    result = self.move_folder(url, path, folder, targ, dst)
-                    if result.returncode == 0:
-                        print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
-                        print('/' + dst + '/' + bcolors.OKGREEN + "  FOLDER MOVED" + bcolors.ENDC)
+        if (test == False):
+            # Try to move the folders in threads
+            with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+                for folder in folders:
+                    if folder != '':
+                        executor.submit(self.move_folder, url, path, folder, targ, dst)
+
+            # All folders not moved, create and dive on it
+            folders = self.get_folders(url, path)
+            for folder in folders:
+                if folder != '':
+                    result = self.create_folder(url, dst, folder)
+                    if (result.returncode == 0):
+                        print('/' + dst + '/' + folder + bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
                     else:
-                        print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
-                        print('/' + dst + '/' + bcolors.FAIL + "  FOLDER MOVE FAILED: " + bcolors.ENDC + \
+                        print('/' + dst + '/' + folder + bcolors.FAIL + "  CREATE FAILED: " + bcolors.ENDC + \
                             json.loads(result.stdout.decode('utf-8'))['message'])
-
-                        result = self.create_folder(url, dst, folder)
-                        if (result.returncode == 0):
-                            print('/' + dst + '/' + folder + bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
-                        else:
-                            print('/' + dst + '/' + folder + bcolors.FAIL + "  CREATE FAILED: " + bcolors.ENDC + \
-                                json.loads(result.stdout.decode('utf-8'))['message'])
-                            errcount += 1
-
-                        if recursive:
-                            result = self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
-                            errcount += result
-                            if test == False and result == 0:
-                                result = self.remove_folder(url, path, folder)
-                                if result.returncode == 0:
-                                    print('/' + path + '/' + folder + bcolors.OKBLUE + "  REMOVED" + bcolors.ENDC)
-                                else:
-                                    print('/' + path + '/' + folder + bcolors.FAIL + "  REMOVE FAILED: " + bcolors.ENDC + \
-                                        json.loads(result.stdout.decode('utf-8'))['message'])
-
-                else:
-                    print(path + '/' + folder + '/')
 
                     if recursive:
                         result = self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
+                        if test == False and result == 0:
+                            result = self.remove_folder(url, path, folder)
+                            if result.returncode == 0:
+                                print('/' + path + '/' + folder + bcolors.OKBLUE + "  REMOVED" + bcolors.ENDC)
+                            else:
+                                print('/' + path + '/' + folder + bcolors.FAIL + "  REMOVE FAILED: " + bcolors.ENDC + \
+                                    json.loads(result.stdout.decode('utf-8'))['message'])
+
+        else:
+            folders = self.get_folders(url, path)
+            for folder in folders:
+                print(path + '/' + folder + '/')
+
+                if recursive:
+                    result = self.move_content(url, path + '/' + folder, recursive, level + 1, test, targ, dst + '/' + folder)
 
         files = self.get_files(url, path)
-        for file in files:
-            if file != '': 
-                if (test == False):
-                    result = self.move_file(url, path, file, targ, dst)
-                    if (result.returncode == 0):
-                        print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
-                        print('/' + dst + '/' + bcolors.OKCYAN + "  FILE MOVED" + bcolors.ENDC)
-                    else:
-                        print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
-                        print(dst + '/' + bcolors.FAIL + "  FILE MOVE FAILED: " + bcolors.ENDC + \
-                            json.loads(result.stdout.decode('utf-8'))['message'])
-                        errcount += 1
-                else:
+        if (test == False):
+            # Move files in threads
+            with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+                for file in files:
+                    if file != '': 
+                        executor.submit(self.move_file, url, path, file, targ, dst)
+        else:
+            for file in files:
+                if file != '': 
                     print(path + '/' + file)
 
-        return errcount
+        return int(self.get_folder_item_count(url, path))
 
 
     def create_folder(self, url, path, folder):
@@ -138,8 +138,18 @@ class LibraryManager:
         dst = self.adjust_path(dst)
         # print('\n m365 spo file move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + file, '/' + targ + '/' + dst + '/'))
         # return emulated_result_1 
-        return (subprocess.run(['m365', 'spo file move -o json -u', url, '-s', path + '/' + file, '-t', '/' + targ + '/' + dst + '/'], \
+        result = (subprocess.run(['m365', 'spo file move -o json -u', url, '-s', path + '/' + file, '-t', '/' + targ + '/' + dst + '/'], \
             stdout=subprocess.PIPE))
+
+        if (result.returncode == 0):
+            print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+            print('/' + dst + '/' + bcolors.OKCYAN + "  FILE MOVED" + bcolors.ENDC)
+        else:
+            print('/' + path + '/' + file + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+            print(dst + '/' + bcolors.FAIL + "  FILE MOVE FAILED: " + bcolors.ENDC + \
+                json.loads(result.stdout.decode('utf-8'))['message'])
+                
+        return
 
 
     def move_folder(self, url, path, folder, targ, dst):
@@ -148,8 +158,18 @@ class LibraryManager:
         dst = self.adjust_path(dst)
         # print('\n m365 spo folder move -o json -u {0} -s {1} -t {2}'.format(url, path + '/' + folder, '/' + targ + '/' + dst + '/'))
         # return emulated_result_1 
-        return (subprocess.run(['m365', 'spo folder move -o json -u', url, '-s', path + '/' + folder, '-t', '/' + targ + '/' + dst + '/'], \
+        result = (subprocess.run(['m365', 'spo folder move -o json -u', url, '-s', path + '/' + folder, '-t', '/' + targ + '/' + dst + '/'], \
             stdout=subprocess.PIPE))
+
+        if result.returncode == 0:
+            print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+            print('/' + dst + '/' + bcolors.OKGREEN + "  FOLDER MOVED" + bcolors.ENDC)
+        else:
+            print('/' + path + '/' + folder + bcolors.BOLD + ' ==> ' + bcolors.ENDC, end='')
+            print('/' + dst + '/' + bcolors.FAIL + "  FOLDER MOVE FAILED: " + bcolors.ENDC + \
+                json.loads(result.stdout.decode('utf-8'))['message'])
+
+        return
 
 
     def remove_folder(self, url, path, folder):
