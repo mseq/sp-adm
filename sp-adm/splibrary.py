@@ -120,7 +120,8 @@ class LibraryManager:
                 if file != '': 
                     print(path + '/' + file)
 
-        return int(self.get_folder_item_count(url, path))
+    
+        return self.parse_int(self.get_folder_item_count(url, path))
 
 
     def create_folder(self, url, path, folder):
@@ -179,3 +180,12 @@ class LibraryManager:
         # return emulated_result_0 
         return (subprocess.run(['m365', 'spo folder remove --confirm -o json -u', url, '-f', '/' + path + '/' + folder], \
             stdout=subprocess.PIPE))
+
+
+    def parse_int(self, str):
+        """Return integer, or if cannot convert, returns 0."""
+        try:
+            return int(str)
+        except ValueError:
+            return 0
+    
