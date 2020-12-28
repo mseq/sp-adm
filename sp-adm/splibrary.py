@@ -83,7 +83,7 @@ class LibraryManager:
             folders = self.get_folders(url, path)
             for folder in folders:
                 if folder != '':
-                    result = self.create_folder(url, dst, folder)
+                    result = self.create_folder(url, dst, '' + folder)
                     if (result.returncode == 0):
                         print('/' + dst + '/' + folder + bcolors.OKGREEN + "  CREATED" + bcolors.ENDC)
                     else:
@@ -129,7 +129,7 @@ class LibraryManager:
         path = self.adjust_path(path)
         # print('\n m365 spo folder add -o json -u {0} -p {1} -n {2}'.format(url, path, folder))
         # return emulated_result_0 
-        return (subprocess.run(['m365', 'spo folder add -o json -u', url, '-p', path, '-n', folder], \
+        return (subprocess.run(['m365', 'spo folder add -o json -u', url, '-p', path, '-n ', folder], \
             stdout=subprocess.PIPE))
 
 
